@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amigo Oculto</title>
+    <style>
+        /* CSS */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #logout-button {
+            background-color: #dc3545;
+        }
+
+        #logout-button:hover {
+            background-color: #c82333;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #result {
+            margin-top: 20px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        #developer-message {
+            margin-top: 20px;
+            color: #555;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        #welcome-message {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Autenticação -->
+        <div id="auth-section">
+            <div id="welcome-message">BEM VINDO AO AMIGO OCULTO DA FAMILIA LUZIA ❤️</div>
+            <h1>Cadastro / Login</h1>
+            <div id="register-area">
+                <input type="text" id="register-name" placeholder="Digite seu nome">
+                <input type="password" id="register-password" placeholder="Digite sua senha">
+                <button id="register-button">Cadastrar</button>
+            </div>
+            <div id="login-area">
+                <input type="text" id="login-name" placeholder="Digite seu nome">
+                <input type="password" id="login-password" placeholder="Digite sua senha">
+                <button id="login-button">Entrar</button>
+            </div>
+        </div>
+
+        <!-- Sorteio -->
+        <div id="app-section" class="hidden">
+            <h1>Bem-vindo(a), <span id="user-name"></span>!</h1>
+            <button id="draw-button">Realizar Sorteio</button>
+            <div id="result" class="hidden">
+                <h2>Você tirou: <span id="draw-result"></span></h2>
+            </div>
+            <button id="logout-button">Sair</button>
+            <div id="developer-message" class="hidden">
+                Esse sistema foi desenvolvido com muito carinho por Alef Wilker ❤️ .
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lista de participantes
+        const participants = [];
+
+        // Cadastro
+        document.getElementById("register-button").addEventListener("click", () => {
+            const name = document.getElementById("register-name").value.trim();
+            const password = document.getElementById("register-password").value.trim();
+
+            if (!name || !password) {
+                alert("Por favor, preencha todos os campos!");
+                return;
+            }
+
+            if (participants.some(p => p.name === name)) {
+                alert("Nome já cadastrado!");
+                return;
+            }
+
+            participants.push({ name, password, drawn: null });
+            alert("Cadastro realizado com sucesso!");
+            document.getElementById("register-name").value = "";
+            document.getElementById("register-password").value = "";
+        });
+
+        // Login
+        document.getElementById("login-button").addEventListener("click", () => {
+            const name = document.getElementById("login-name").value.trim();
+            const password = document.getElementById("login-password").value.trim();
+
+            const user = participants.find(p => p.name === name && p.password === password);
+
+            if (!user) {
+                alert("Nome ou senha inválidos!");
+                return;
+            }
+
+            document.getElementById("auth-section").classList.add("hidden");
+            document.getElementById("app-section").classList.remove("hidden");
+            document.getElementById("user-name").textContent = user.name;
+
+            // Mostrar o resultado do sorteio se já tiver sido realizado
+            if (user.drawn) {
+                document.getElementById("draw-result").textContent = user.drawn;
+                document.getElementById("result").classList.remove("hidden");
+                document.getElementById("draw-button").classList.add("hidden");
+            } else {
+                document.getElementById("result").classList.add("hidden");
+                document.getElementById("draw-button").classList.remove("hidden");
+            }
+
+            // Mostrar mensagem de desenvolvedor
+            document.getElementById("developer-message").classList.remove("hidden");
+        });
+
+        // Sorteio
+        document.getElementById("draw-button").addEventListener("click", () => {
+            const currentUserName = document.getElementById("user-name").textContent;
+            const currentUser = participants.find(p => p.name === currentUserName);
+
+            if (participants.length < 2) {
+                alert("É necessário pelo menos dois participantes para o sorteio!");
+                return;
+            }
+
+            const availableParticipants = participants
+                .filter(p => p.name !== currentUserName && !p.drawnBy)
+                .map(p => p.name);
+
+            if (availableParticipants.length === 0) {
+                alert("Não há participantes disponíveis para sortear!");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableParticipants.length);
+            const drawnParticipant = availableParticipants[randomIndex];
+
+            currentUser.drawn = drawnParticipant;
+
+            const drawnPerson = participants.find(p => p.name === drawnParticipant);
+            drawnPerson.drawnBy = currentUserName;
+
+            document.getElementById("draw-result").textContent = drawnParticipant;
+            document.getElementById("result").classList.remove("hidden");
+            document.getElementById("draw-button").classList.add("hidden");
+        });
+
+        // Logout
+        document.getElementById("logout-button").addEventListener("click", () => {
+            document.getElementById("auth-section").classList.remove("hidden");
+            document.getElementById("app-section").classList.add("hidden");
+            document.getElementById("login-name").value = "";
+            document.getElementById("login-password").value = "";
+        });
+    </script>
+</body>
+</html>
